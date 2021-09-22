@@ -1,14 +1,17 @@
 # DeepCas13 #
 
-A deep learning model to predict the sgRNA on-target activity with high accuracy from sgRNA sequences and RNA secondary structures.
+A deep learning model to predict the CRISPR-Cas13d sgRNA on-target activity with high accuracy from sgRNA sequences and RNA secondary structures.
 
-DeepCas13 is developed by [Wei Li Lab](https://weililab.org/) at Children's National Medical Center, which is a deep learning–based computational model for predicting the Cas13 sgRNA on-target efficiency.
+DeepCas13 uses convolutional recurrent neural network (CRNN) to extract spatial-temporal features for both sequence and secondary structure of a specific sgRNA and then predicts the efficiency by a fully connected neural network (FCNN).
 
-DeepCas13 uses convolutional neural network (CNN) and following recurrent neural network (RNN) to extract spatial-temporal features for both sequence and secondary structure of one specific sgRNA and then predicts the efficiency by a fully connected neural network (FCNN).
+### Install the dependencies ###
 
-### What is this repository for? ###
+1. Create conda environment
 
-* Quick summary
+```
+	conda create --name deepcas13 python=3.6
+```
+	
 * Version
 * [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
 
