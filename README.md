@@ -1,6 +1,10 @@
-# README #
+# DeepCas13 #
 
-This README would normally document whatever steps are necessary to get your application up and running.
+A deep learning model to predict the sgRNA on-target activity with high accuracy from sgRNA sequences and RNA secondary structures.
+
+DeepCas13 is developed by [Wei Li Lab](https://weililab.org/) at Children's National Medical Center, which is a deep learning–based computational model for predicting the Cas13 sgRNA on-target efficiency.
+
+DeepCas13 uses convolutional neural network (CNN) and following recurrent neural network (RNN) to extract spatial-temporal features for both sequence and secondary structure of one specific sgRNA and then predicts the efficiency by a fully connected neural network (FCNN).
 
 ### What is this repository for? ###
 
