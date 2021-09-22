@@ -4,15 +4,35 @@ A deep learning model to predict the CRISPR-Cas13d sgRNA on-target activity with
 
 DeepCas13 uses convolutional recurrent neural network (CRNN) to extract spatial-temporal features for both sequence and secondary structure of a specific sgRNA and then predicts the efficiency by a fully connected neural network (FCNN).
 
-### Install the dependencies ###
+### Install dependencies ###
 
-1. Create conda environment
+1. Create a conda environment
 
 ```
 	conda create --name deepcas13 python=3.6
 ```
 	
-* Version
+2. Activate the environment
+
+```
+	conda activate deepcas13
+```
+
+3. Install the dependencies
+
+```
+    conda install pandas numpy seaborn scikit-learn 
+	
+    conda install -c bioconda viennarna
+	
+	conda install -c conda-forge keras
+	
+	conda install -c conda-forge tensorflow
+	
+	
+```
+
+
 * [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
 
 ### How do I get set up? ###
