@@ -34,25 +34,32 @@ DeepCas13 uses convolutional recurrent neural network (CRNN) to extract spatial-
 	
 ```
 
+### Run the demo ###
 
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+Here, we provie a jupyter notebook that show how to run our model. We prepared the train and test files in the data folder and you just need to run the notebook file.
 
-### How do I get set up? ###
+In this notebook file, you can train the model and predict Deep Score for the test dataset. You can also evalute the preformance by ploting ROC curve.
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+1. Activate the conda environment
 
-### Contribution guidelines ###
+```
+	conda activate deepcas13
+```
 
-* Writing tests
-* Code review
-* Other guidelines
+2. Start Jupyter Notebook
 
-### Who do I talk to? ###
+```
+	jupyter notebook
+```
 
-* Repo owner or admin
-* Other community or team contact
+3. Run the demo step by step
+
+### About the output ###
+
+The output of our model is a score, named Deep Score. 
+
+Deep Score, which ranges from 0 to 1, is used to indicate the on-target efficiency of a specific sgRNA. The higher the Deep Score, the more likely sgRNA is to be effective.
+
+### Authors ###
+
+* Xiaolong Cheng: xcheng@childrensnational.org
