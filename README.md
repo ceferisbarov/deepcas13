@@ -62,9 +62,18 @@ The output of our model is a score, named Deep Score.
 
 Deep Score, which ranges from 0 to 1, is used to indicate the on-target efficiency of a specific sgRNA. The higher the Deep Score, the more likely sgRNA is to be effective.
 
+### How to run the model on your data ###
+
+There are two options:
+
+1. Use the traning data in this repository. You just need to prepare the test file which list the sgRNA sequence in *seq* column. Then follew the demo tutorual.
+
+2. Use our [webserver](http://deepcas13.weililab.org/). It provides a user-friendly interface to design Cas13d library. (Recommanded)
+
 ### Authors ###
 
 * Xiaolong Cheng: xcheng@childrensnational.org
+* Wei Li: wli2@childrensnational.org
 
 ### License ###
 
