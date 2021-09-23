@@ -66,7 +66,7 @@ Deep Score, which ranges from 0 to 1, is used to indicate the on-target efficien
 
 There are two options:
 
-1. Use the traning data in this repository. You just need to prepare the test file which list the sgRNA sequence in *seq* column. Then follew the demo tutorual.
+1. Use the traning data in this repository. You just need to prepare the test file which lists the sgRNA sequences in *seq* column. Then follew the demo tutorual.
 
 2. Use our [webserver](http://deepcas13.weililab.org/). It provides a user-friendly interface to design Cas13d library. (Recommanded)
 
