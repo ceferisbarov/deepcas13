@@ -4,6 +4,8 @@ A deep learning model to predict the CRISPR-Cas13d sgRNA on-target activity with
 
 DeepCas13 uses convolutional recurrent neural network (CRNN) to extract spatial-temporal features for both sequence and secondary structure of a specific sgRNA and then predicts the efficiency by a fully connected neural network (FCNN).
 
+We also provide a [webserver](http://deepcas13.weililab.org/) for user to design Cas13d sgRNAs online.
+
 ## How to run this source code ##
 
 ### Install dependencies ###
