@@ -65,3 +65,7 @@ Deep Score, which ranges from 0 to 1, is used to indicate the on-target efficien
 ### Authors ###
 
 * Xiaolong Cheng: xcheng@childrensnational.org
+
+### License ###
+
+Licensed under the [MIT license](http://opensource.org/licenses/MIT). This project may not be copied, modified, or distributed except according to those terms.
