@@ -31,7 +31,7 @@ We also provide a [webserver](http://deepcas13.weililab.org/) for user to design
 	
     conda install -c bioconda viennarna
 	
-	conda install -c conda-forge tensorflow=2.2
+	conda install -c conda-forge tensorflow=2.4
 	
 	
 ```
