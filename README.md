@@ -52,7 +52,7 @@ In this notebook file, you can train the model and predict Deep Score for the te
 	jupyter notebook
 ```
 
-3. Run the demo step by step
+3. Run the demo in *run_demo.ipynb* step by step
 
 ### About the output ###
 
