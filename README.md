@@ -58,7 +58,7 @@ In this notebook file, you can train the model and predict Deep Score for the te
 
 ### About the output ###
 
-The output of our model is a score, named Deep Score. 
+The output of DeepCas13 is a score, named Deep Score. 
 
 Deep Score, which ranges from 0 to 1, is used to indicate the on-target efficiency of a specific sgRNA. The higher the Deep Score, the more likely sgRNA is to be effective.
 
