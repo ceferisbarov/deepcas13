@@ -1,4 +1,4 @@
-![logo](./pictures/logo.png)
+<img src="./pictures/logo.png" alt="logo" width="200"/>
 
 **DeepCas13**, A deep learning model to predict the CRISPR-Cas13d sgRNA on-target activity with high accuracy from sgRNA sequences and RNA secondary structures.
 
