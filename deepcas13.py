@@ -137,9 +137,11 @@ def read_target(file_path, length):
     for k in range(len(seq_target) - length):
         lst_sgrna.append('sgRNA_'+str(k)+'_'+str(k+length))
         lst_seq.append(seq_target[k:k+length])
+    ##
+    dct_ACGT = {'A':'T', 'T':'A', 'C':'G', 'G':'C', 'N':'N', 'U':'A'}
     df_target = pd.DataFrame(columns = ['sgrna', 'seq'])
     df_target['sgrna'] = lst_sgrna
-    df_target['seq'] = lst_seq
+    df_target['seq'] = [''.join([dct_ACGT[i] for i in q][::-1]) for q in lst_seq]
     return df_target
 
 def get_DeepScore(df_seq, model, basename):
