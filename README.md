@@ -38,39 +38,48 @@ We also provide a [webserver](http://deepcas13.weililab.org/) for user to design
 	
 ```
 
+4. Check the usage
+
+```
+    python deepcas13.py -h
+	
+	
+```
+
 ### Run the demo ###
 
-Here, we provie a jupyter notebook that show how to run our model. We prepared the train and test files in the data folder and you just need to run the notebook file.
+Here, we provie 3 demos to show how to use DeepCas13, including train model, predict sgRNA efficiency and design sgRNAs for target sequence.
 
-In this notebook file, you can train the model and predict Deep Score for the test dataset. You can also evalute the preformance by ploting ROC curve.
-
-1. Activate the conda environment
+#### Demo 1. Train DeepCas13 model ####
 
 ```
-	conda activate deepcas13
+	python deepcas13.py --train --savepath DL_model --data data/training_data.csv
 ```
 
-2. Start Jupyter Notebook
+#### Demo 2. Predict sgRNA efficiency ####
 
 ```
-	jupyter notebook
+	python deepcas13.py --seq data/test_data_sgrna1.csv --model DL_model
 ```
 
-3. Run the demo in *run_demo.ipynb* step by step
+#### Demo 3. Design sgRNAs for target sequence ####
+
+```
+	python deepcas13.py --seq data/test_data_target.fa --model DL_model --type target
+```
 
 ### About the output ###
 
-The output of DeepCas13 is a score, named Deep Score. 
+The output of DeepCas13 is a csv file: 
 
-Deep Score, which ranges from 0 to 1, is used to indicate the on-target efficiency of a specific sgRNA. The higher the Deep Score, the more likely sgRNA is to be effective.
+|sgrna|seq|deepscore|
+|-----|---|---------|
+|sgRNA_0_22|TTCCCTACTTCCTGTGCTCTTG|0.4477344274520874|
+|sgRNA_1_23|TCCCTACTTCCTGTGCTCTTGC|0.6117993414402008|
+|sgRNA_2_24|CCCTACTTCCTGTGCTCTTGCG|0.6184467256069184|
+|sgRNA_3_25|CCTACTTCCTGTGCTCTTGCGG|0.6434131860733032|
 
-### How to run the model on your data ###
 
-There are two options:
-
-1. Use the traning data in this repository. You just need to prepare the test file which lists the sgRNA sequences in *seq* column. Then follew the demo tutorual.
-
-2. Use our [webserver](http://deepcas13.weililab.org/). It provides a user-friendly interface to design Cas13d library. (Recommanded)
 
 ### Authors ###
 
