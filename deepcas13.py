@@ -40,7 +40,7 @@ parser = argparse.ArgumentParser(description="Predict CRISPR-Cas13d sgRNA on-tar
 group_predict = parser.add_argument_group(title='Predict sgRNA efficiency')
 group_predict.add_argument("--seq", type=str, help="The sequence input. The input file can be .csv, .txt or .fasta format. Please note that: \n\t1) if the input is in .csv or .txt format, there should be no header in the file. The input can contain one column or two columns (ID + seq); \n\t2) if --type is set as target, there should be one single sequence in the input file")
 group_predict.add_argument("--model", type=str, help="Specify the path to the pretrained model")
-group_predict.add_argument("--output", type=str, default="./DeepCas13_predicted_sgRNA.csv", help="The output file")
+group_predict.add_argument("--output", type=str, default="DeepCas13_predicted_sgRNA.csv", help="The output file")
 group_predict.add_argument("--type", type=str, choices=["sgrna", "target"], default="sgrna", 
                    help="The acceptable prediction type: \n\t1) sgrna (default): predict the on-target efficiency of sgRNAs; \n\t2) target: design sgRNAs for the input target sequence")
 group_predict.add_argument("--length", type=int, default=22, help="The sgRNA length. Default length is 22nt and this parameter only works when --type is set as target")
@@ -280,7 +280,7 @@ if __name__ == "__main__":
         if args.type == 'sgrna':
             logger.info('Predict sgRNA on-target efficiency')
             df_score = get_DeepScore(read_seq(args.seq), args.model, args.basename)
-            logger.info('output DeepScore to file: ' + args.output)
+            logger.info('save DeepScore to file: ' + args.output)
             if args.output.endswith('.csv'):
                 df_score.to_csv(args.output, header=True, index=False)
             elif args.output.endswith('.txt') or args.output.endswith('.tsv'):
@@ -288,9 +288,10 @@ if __name__ == "__main__":
         elif args.type == 'target':
             logger.info('Design sgRNAs for target sequence')
             df_score = get_DeepScore(read_target(args.seq, args.length), args.model, args.basename)
-            logger.info('output sgRNAs and DeepScore to file: ' + args.output)
+            logger.info('save sgRNAs and DeepScore to file: ' + args.output)
             if args.output.endswith('.csv'):
                 df_score.to_csv(args.output, header=True, index=False)
             elif args.output.endswith('.txt') or args.output.endswith('.tsv'):
                 df_score.to_csv(args.output, header=True, index=False, sep='\t')
+    logger.info('Done !')
 
