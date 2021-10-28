@@ -56,7 +56,7 @@ Here, we provie 3 demos to show how to use DeepCas13, including train model, pre
 	python deepcas13.py --train --savepath DL_model --data data/training_data.csv
 ```
 
-'--train' parameter
+`--train` parameter
 
 #### Demo 2. Predict sgRNA efficiency ####
 
