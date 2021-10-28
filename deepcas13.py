@@ -28,8 +28,10 @@ from tensorflow.keras.layers import Activation, Embedding, GRU, LSTM, Bidirectio
 import tensorflow.keras.backend as K
 import tensorflow as tf
 
+import logging
 import absl.logging
 absl.logging.set_verbosity(absl.logging.ERROR)
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
 ## Parse Parameters
 parser = argparse.ArgumentParser(description="Predict CRISPR-Cas13d sgRNA on-target efficiency by DeepCas13", 
@@ -81,6 +83,7 @@ def fold_one_hot_code(seq):
     return df_onehot.values
 
 def read_seq(file_path):
+    logger.info('read sgRNA sequence file: ' + file_path)
     if file_path.endswith('.csv'):
         df_seq = pd.read_csv(file_path, header=None, index_col=None)
         if len(df_seq.columns) == 1:
@@ -103,9 +106,11 @@ def read_seq(file_path):
         df_seq = pd.DataFrame(columns = ['sgrna', 'seq'])
         df_seq['sgrna'] = [i[1:] for i in lines if i.startswith('>')]
         df_seq['seq'] = [i[1:] for i in lines if not i.startswith('>')]
+    logger.info('find ' + str(len(df_seq)) + ' sgRNAs')
     return df_seq
 
 def read_target(file_path, length):
+    logger.info('read target sequence file: ' + file_path)
     if file_path.endswith('.csv'):
         df_seq = pd.read_csv(file_path, header=None, index_col=None)
         if len(df_seq.columns) == 1:
@@ -130,6 +135,7 @@ def read_target(file_path, length):
         df_seq['seq'] = [i[1:] for i in lines if not i.startswith('>')]
     ##
     seq_target = df_seq['seq'].to_list()[0]
+    logger.info('target sequence contains: ' + str(len(seq_target)) + ' nt')
     if len(seq_target) <= length:
         return False
     lst_sgrna = []
@@ -137,6 +143,7 @@ def read_target(file_path, length):
     for k in range(len(seq_target) - length):
         lst_sgrna.append('sgRNA_'+str(k)+'_'+str(k+length))
         lst_seq.append(seq_target[k:k+length])
+    logger.info('there are ' + str(len(lst_sgrna)) + ' possible sgRNAs')
     ##
     dct_ACGT = {'A':'T', 'T':'A', 'C':'G', 'G':'C', 'N':'N', 'U':'A'}
     df_target = pd.DataFrame(columns = ['sgrna', 'seq'])
@@ -153,10 +160,12 @@ def get_DeepScore(df_seq, model, basename):
         seq = seq.replace('U', 'T')
         lst_seq[i] = seq
     # import models
+    logger.info('load pretrained model from path: ' + model)
     lst_model = []
     for k in range(5):
         lst_model.append(keras.models.load_model(os.path.join(model, basename+str(k))))
     # preprocessing
+    logger.info('predict sgRNA efficiency')
     X_test_seq = [seq_one_hot_code(seq) for seq in lst_seq]
     lst_fold = [get_fold(seq) for seq in lst_seq]
     X_test_fold = [fold_one_hot_code(fold) for fold in lst_fold]
@@ -176,6 +185,7 @@ def get_DeepScore(df_seq, model, basename):
 ## Train model
 def read_training_data(file_path):
     # read file
+    logger.info('read training data file: ' + file_path)
     if file_path.endswith('.csv'):
         df_data = pd.read_csv(file_path, names=['seq', 'LFC'], index_col=None)
     elif file_path.endswith('.txt'):
@@ -192,6 +202,7 @@ def read_training_data(file_path):
     return df_data
 
 def train_deepcas13_model(df_train, savepath, basename):
+    logger.info('train DeepCas13 model')
     from sklearn.model_selection import KFold
     kf = KFold(n_splits=5, shuffle=True, random_state=32)
     N = 0
@@ -240,24 +251,44 @@ def train_deepcas13_model(df_train, savepath, basename):
         NN_model.compile(optimizer='Adam', loss='mse')
         ###
         NN_model.fit([X_train_seq_CNN, X_train_fold_CNN],  y_train, epochs=30, batch_size=128, shuffle=True, verbose=0)
+        logger.info('save trained model to path: ' + savepath)
         NN_model.save(os.path.join(savepath, basename+str(N)))
         N = N + 1
 
 if __name__ == "__main__":
+    # create logger
+    logger = logging.getLogger('DeepCas13')
+    logger.setLevel(logging.DEBUG)
+    # create console handler and set level to debug
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    # create formatter for console handler
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # add formatter to console handler
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    ##
     args = parser.parse_args()
     if args.train:
+        logger.info('Set training mode')
         if not os.path.isdir(args.savepath):
+            logger.info('no such savepath: '+ args.savepath)
             os.mkdir(args.savepath)
+            logger.info('create folder: '+ args.savepath)
         train_deepcas13_model(read_training_data(args.data), args.savepath, args.basename)
     else:
         if args.type == 'sgrna':
+            logger.info('Predict sgRNA on-target efficiency')
             df_score = get_DeepScore(read_seq(args.seq), args.model, args.basename)
+            logger.info('output DeepScore to file: ' + args.output)
             if args.output.endswith('.csv'):
                 df_score.to_csv(args.output, header=True, index=False)
             elif args.output.endswith('.txt') or args.output.endswith('.tsv'):
                 df_score.to_csv(args.output, header=True, index=False, sep='\t')
         elif args.type == 'target':
+            logger.info('Design sgRNAs for target sequence')
             df_score = get_DeepScore(read_target(args.seq, args.length), args.model, args.basename)
+            logger.info('output sgRNAs and DeepScore to file: ' + args.output)
             if args.output.endswith('.csv'):
                 df_score.to_csv(args.output, header=True, index=False)
             elif args.output.endswith('.txt') or args.output.endswith('.tsv'):
