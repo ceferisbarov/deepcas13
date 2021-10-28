@@ -11,6 +11,8 @@ import pandas as pd
 import numpy as np
 import RNA
 import os
+import argparse
+from argparse import RawTextHelpFormatter
 
 from tensorflow import keras
 from tensorflow.keras.preprocessing.sequence import pad_sequences
@@ -26,7 +28,29 @@ from tensorflow.keras.layers import Activation, Embedding, GRU, LSTM, Bidirectio
 import tensorflow.keras.backend as K
 import tensorflow as tf
 
+import absl.logging
+absl.logging.set_verbosity(absl.logging.ERROR)
 
+## Parse Parameters
+parser = argparse.ArgumentParser(description="Predict CRISPR-Cas13d sgRNA on-target efficiency by DeepCas13", 
+                                 formatter_class=RawTextHelpFormatter)
+
+group_predict = parser.add_argument_group(title='Predict sgRNA efficiency')
+group_predict.add_argument("--seq", type=str, help="The sequence input. The input file can be .csv, .txt or .fasta format. Please note that: \n\t1) if the input is in .csv or .txt format, there should be no header in the file. The input can contain one column or two columns (ID + seq); \n\t2) if --type is set as target, there should be one single sequence in the input file")
+group_predict.add_argument("--model", type=str, help="Specify the path to the pretrained model")
+group_predict.add_argument("--output", type=str, default="./DeepCas13_predicted_sgRNA.csv", help="The output file")
+group_predict.add_argument("--type", type=str, choices=["sgrna", "target"], default="sgrna", 
+                   help="The acceptable prediction type: \n\t1) sgrna (default): predict the on-target efficiency of sgRNAs; \n\t2) target: design sgRNAs for the input target sequence")
+group_predict.add_argument("--length", type=int, default=22, help="The sgRNA length. Default length is 22nt and this parameter only works when --type is set as target")
+
+group_train = parser.add_argument_group(title='Train DeepCas13 model')
+group_train.add_argument("--train", action='store_true', help="Set training mode")
+group_train.add_argument("--data", type=str, help="The training data. The input file can be .csv or .txt format. There should be two columns in the file(no header names): \n\t1) the first column is the sgRNA sequence; \n\t2) the second columns is the sgRNA LFC")
+group_train.add_argument("--savepath", type=str, help="Specify the path to save the model")
+
+parser.add_argument("--basename", type=str, default="DeepCas13_Model", help="The basename of model files. Default basename is DeepCas13_Model")
+
+##
 def get_fold(seq):
     for i in range(33-len(seq)):
         seq = seq + 'N'
@@ -56,13 +80,122 @@ def fold_one_hot_code(seq):
     df_onehot = df_onehot.drop(columns=['N'])
     return df_onehot.values
 
-def DL_Multi_Models(df_train, df_yvalue):
-    from sklearn.model_selection import KFold
+def read_seq(file_path):
+    if file_path.endswith('.csv'):
+        df_seq = pd.read_csv(file_path, header=None, index_col=None)
+        if len(df_seq.columns) == 1:
+            df_seq.columns = ['seq']
+            df_seq['sgrna'] = ['sgrna_'+i for i in df_seq.seq.to_list()]
+            df_seq = df_seq[['sgrna', 'seq']]
+        elif len(df_seq.columns) == 2:
+            df_seq.columns = ['sgrna', 'seq']
+    elif file_path.endswith('.txt'):
+        df_seq = pd.read_csv(file_path, names=['seq'], index_col=None, sep='\t')
+        if len(df_seq.columns) == 1:
+            df_seq.columns = ['seq']
+            df_seq['sgrna'] = ['sgrna_'+i for i in df_seq.seq.to_list()]
+            df_seq = df_seq[['sgrna', 'seq']]
+        elif len(df_seq.columns) == 2:
+            df_seq.columns = ['sgrna', 'seq']
+    elif file_path.endswith('.fa') or file_path.endswith('.fasta'):
+        with open(file_path) as f:
+            lines = f.read().splitlines()
+        df_seq = pd.DataFrame(columns = ['sgrna', 'seq'])
+        df_seq['sgrna'] = [i[1:] for i in lines if i.startswith('>')]
+        df_seq['seq'] = [i[1:] for i in lines if not i.startswith('>')]
+    return df_seq
+
+def read_target(file_path, length):
+    if file_path.endswith('.csv'):
+        df_seq = pd.read_csv(file_path, header=None, index_col=None)
+        if len(df_seq.columns) == 1:
+            df_seq.columns = ['seq']
+            df_seq['sgrna'] = ['sgrna_'+i for i in df_seq.seq.to_list()]
+            df_seq = df_seq[['sgrna', 'seq']]
+        elif len(df_seq.columns) == 2:
+            df_seq.columns = ['sgrna', 'seq']
+    elif file_path.endswith('.txt'):
+        df_seq = pd.read_csv(file_path, names=['seq'], index_col=None, sep='\t')
+        if len(df_seq.columns) == 1:
+            df_seq.columns = ['seq']
+            df_seq['sgrna'] = ['sgrna_'+i for i in df_seq.seq.to_list()]
+            df_seq = df_seq[['sgrna', 'seq']]
+        elif len(df_seq.columns) == 2:
+            df_seq.columns = ['sgrna', 'seq']
+    elif file_path.endswith('.fa') or file_path.endswith('.fasta'):
+        with open(file_path) as f:
+            lines = f.read().splitlines()
+        df_seq = pd.DataFrame(columns = ['sgrna', 'seq'])
+        df_seq['sgrna'] = [i[1:] for i in lines if i.startswith('>')]
+        df_seq['seq'] = [i[1:] for i in lines if not i.startswith('>')]
+    ##
+    seq_target = df_seq['seq'].to_list()[0]
+    if len(seq_target) <= length:
+        return False
+    lst_sgrna = []
+    lst_seq = []
+    for k in range(len(seq_target) - length):
+        lst_sgrna.append('sgRNA_'+str(k)+'_'+str(k+length))
+        lst_seq.append(seq_target[k:k+length])
+    df_target = pd.DataFrame(columns = ['sgrna', 'seq'])
+    df_target['sgrna'] = lst_sgrna
+    df_target['seq'] = lst_seq
+    return df_target
+
+def get_DeepScore(df_seq, model, basename):
+    lst_input = df_seq.seq.to_list()
+    lst_seq = lst_input.copy()
+    for i in range(len(lst_seq)):
+        seq = lst_seq[i]
+        seq = seq.upper()
+        seq = seq.replace('U', 'T')
+        lst_seq[i] = seq
+    # import models
     lst_model = []
+    for k in range(5):
+        lst_model.append(keras.models.load_model(os.path.join(model, basename+str(k))))
+    # preprocessing
+    X_test_seq = [seq_one_hot_code(seq) for seq in lst_seq]
+    lst_fold = [get_fold(seq) for seq in lst_seq]
+    X_test_fold = [fold_one_hot_code(fold) for fold in lst_fold]
+    X_test_arr_seq = np.array(X_test_seq)
+    X_test_arr_fold = np.array(X_test_fold)
+    X_test_seq_CNN = np.reshape(X_test_arr_seq, (len(X_test_arr_seq), 1, 33, 4, 1)) 
+    X_test_fold_CNN = np.reshape(X_test_arr_fold, (len(X_test_arr_fold), 1, 33, 3, 1))
+    df_score = pd.DataFrame(columns=['y_pred', 'M0', 'M1', 'M2', 'M3', 'M4'])
+    for k in range(5):
+        y_pred = lst_model[k].predict([X_test_seq_CNN, X_test_fold_CNN])
+        df_score['M'+str(k)] = [i[0] for i in y_pred]
+    df_score['deepscore'] = df_score[['M0', 'M1', 'M2', 'M3', 'M4']].mean(axis=1)
+    df_result = df_seq.copy()
+    df_result['deepscore'] = df_score['deepscore'].to_list()
+    return df_result
+
+## Train model
+def read_training_data(file_path):
+    # read file
+    if file_path.endswith('.csv'):
+        df_data = pd.read_csv(file_path, names=['seq', 'LFC'], index_col=None)
+    elif file_path.endswith('.txt'):
+        df_data = pd.read_csv(file_path, names=['seq', 'LFC'], index_col=None, sep='\t')
+    # create y_value
+    x1 = -0.3
+    y1 = 0.7
+    x2 = 0
+    y2 = 0.3
+    param_n = 1
+    param_a = (np.log(1.0/(1-y2)-1) - np.log(1.0/(1-y1)-1))/(param_n*x1 - param_n*x2)
+    param_b = -1*np.log(1.0/(1-y1)-1)/param_a - param_n*x1
+    df_data['y_value'] = [1 - 1/(1+np.exp(-1*param_a*(param_n*i+param_b))) for i in df_data['LFC'].to_list()]
+    return df_data
+
+def train_deepcas13_model(df_train, savepath, basename):
+    from sklearn.model_selection import KFold
     kf = KFold(n_splits=5, shuffle=True, random_state=32)
+    N = 0
     for train, test in kf.split(df_train):
         X_train = df_train.iloc[list(train),:]
-        y_train = df_yvalue.iloc[list(train),0]
+        y_train = df_train.iloc[list(train),2]
         X_train_seq = [seq_one_hot_code(i) for i in X_train.seq.to_list()]
         X_train_fold = [fold_one_hot_code(get_fold(i)) for i in X_train.seq.to_list()]
         ###
@@ -105,26 +238,26 @@ def DL_Multi_Models(df_train, df_yvalue):
         NN_model.compile(optimizer='Adam', loss='mse')
         ###
         NN_model.fit([X_train_seq_CNN, X_train_fold_CNN],  y_train, epochs=30, batch_size=128, shuffle=True, verbose=0)
-        lst_model.append(NN_model)
-    ###
-    return lst_model
+        NN_model.save(os.path.join(savepath, basename+str(N)))
+        N = N + 1
 
-def train_and_predict(X_train, y_train, X_test):
-    lst_model = DL_Multi_Models(X_train, y_train)
-    ###
-    X_test_seq = [seq_one_hot_code(i) for i in X_test.seq.to_list()]
-    X_test_fold = [fold_one_hot_code(get_fold(i)) for i in X_test.seq.to_list()]
-    ###
-    X_test_arr_seq = np.array(X_test_seq)
-    X_test_arr_fold = np.array(X_test_fold)
-    ###
-    X_test_seq_CNN = np.reshape(X_test_arr_seq, (len(X_test_arr_seq), 1, 33, 4, 1)) 
-    X_test_fold_CNN = np.reshape(X_test_arr_fold, (len(X_test_arr_fold), 1, 33, 3, 1))
-    ###
-    df_rzlt = pd.DataFrame(index=X_test.index, columns=['Deep Score', 'M0', 'M1', 'M2', 'M3', 'M4'])
-    for k in range(5):
-        y_pred = lst_model[k].predict([X_test_seq_CNN, X_test_fold_CNN])
-        df_rzlt['M'+str(k)] = [i[0] for i in y_pred]
-    df_rzlt['Deep Score'] = df_rzlt[['M0', 'M1', 'M2', 'M3', 'M4']].mean(axis=1)
-    return df_rzlt['Deep Score']
+if __name__ == "__main__":
+    args = parser.parse_args()
+    if args.train:
+        if not os.path.isdir(args.savepath):
+            os.mkdir(args.savepath)
+        train_deepcas13_model(read_training_data(args.data), args.savepath, args.basename)
+    else:
+        if args.type == 'sgrna':
+            df_score = get_DeepScore(read_seq(args.seq), args.model, args.basename)
+            if args.output.endswith('.csv'):
+                df_score.to_csv(args.output, header=True, index=False)
+            elif args.output.endswith('.txt') or args.output.endswith('.tsv'):
+                df_score.to_csv(args.output, header=True, index=False, sep='\t')
+        elif args.type == 'target':
+            df_score = get_DeepScore(read_target(args.seq, args.length), args.model, args.basename)
+            if args.output.endswith('.csv'):
+                df_score.to_csv(args.output, header=True, index=False)
+            elif args.output.endswith('.txt') or args.output.endswith('.tsv'):
+                df_score.to_csv(args.output, header=True, index=False, sep='\t')
 
