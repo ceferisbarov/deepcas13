@@ -57,7 +57,9 @@ Here, we provie 3 demos to show how to use DeepCas13, including train model, pre
 ```
 
 `--train`    Set training mode
+
 `Set training mode`    Specify the path to save the model
+
 `--data`    The training data
 
 #### Demo 2. Predict sgRNA efficiency ####
