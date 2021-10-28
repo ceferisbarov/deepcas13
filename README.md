@@ -68,11 +68,23 @@ Here, we provie 3 demos to show how to use DeepCas13, including train model, pre
 	python deepcas13.py --seq data/test_data_sgrna1.csv --model DL_model
 ```
 
+|Parameter|info|
+|----|----|
+|`--seq` |The sequence input|
+|`--model`|Specify the path to the pretrained model|
+
 #### Demo 3. Design sgRNAs for target sequence ####
 
 ```
 	python deepcas13.py --seq data/test_data_target.fa --model DL_model --type target
 ```
+
+|Parameter|info|
+|----|----|
+|`--seq` |The sequence input|
+|`--model`|Specify the path to the pretrained model|
+|`--type`|The acceptable prediction type: 1) sgrna (default): predict the on-target efficiency of sgRNAs; 2) target: design sgRNAs for the input target sequence|
+
 
 ### About the output ###
 
