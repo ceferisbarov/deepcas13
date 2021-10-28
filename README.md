@@ -73,11 +73,11 @@ Here, we provie 3 demos to show how to use DeepCas13, including train model, pre
 The output of DeepCas13 is a csv file: 
 
 |sgrna|seq|deepscore|
-|--------|----------|------------:|
-|sgRNA_0_22|TTCCCTACTTCCTGTGCTCTTG| 0.447734427452 |
-|sgRNA_1_23|TCCCTACTTCCTGTGCTCTTGC| 0.611799341440 |
-|sgRNA_2_24|CCCTACTTCCTGTGCTCTTGCG| 0.618446725606 |
-|sgRNA_3_25|CCTACTTCCTGTGCTCTTGCGG| 0.643413186073 |
+|--------|----------|------------|
+|sgRNA_0_22|TTCCCTACTTCCTGTGCTCTTG| 0.44 |
+|sgRNA_1_23|TCCCTACTTCCTGTGCTCTTGC| 0.61 |
+|sgRNA_2_24|CCCTACTTCCTGTGCTCTTGCG| 0.61 |
+|sgRNA_3_25|CCTACTTCCTGTGCTCTTGCGG| 0.64 |
 
 
 
