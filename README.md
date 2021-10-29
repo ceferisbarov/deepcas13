@@ -83,13 +83,14 @@ If the sgRNAs already exist, we can load pretrained model and run DeepCas13 to p
 To design sgRNA for a specific target sequence, DeepCas13 can identify all possible sgRNAs and predict the efficiency:
 
 ```
-	python deepcas13.py --seq data/test_data_target.fa --model DL_model --type target
+	python deepcas13.py --seq data/test_data_target.fa --model DL_model --type target --length 22
 ```
 
 |Parameter|info|
 |----|----|
 |`--seq` |The sequence input|
 |`--model`|Specify the path to the pretrained model|
+|`--length`|The sgRNA length|
 |`--type`|The acceptable prediction type: 1) sgrna (default): predict the on-target efficiency of sgRNAs; 2) target: design sgRNAs for the input target sequence|
 
 
