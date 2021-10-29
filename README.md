@@ -52,11 +52,12 @@ Here, we provie 3 demos to show how to use DeepCas13, including train model, pre
 
 #### Demo 1. Train DeepCas13 model ####
 
-We can train DeepCas13 model by set parameter `--train`. The training data is a two-column file, in which the first col is sgRNA sequence and the second col the the LFC.
+We can train DeepCas13 model by following command:
 
 ```
 	python deepcas13.py --train --savepath DL_model --data data/training_data.csv
 ```
+The input training data is a two-column file, in which the first col is sgRNA sequence and the second col the LFC.
 
 |Parameter|info|
 |----|----|
@@ -65,6 +66,8 @@ We can train DeepCas13 model by set parameter `--train`. The training data is a 
 |`--data`|The training data|
 
 #### Demo 2. Predict sgRNA efficiency ####
+
+If the sgRNAs already exist, we can load pretrained model and run DeepCas13 to predict the efficiency:
 
 ```
 	python deepcas13.py --seq data/test_data_sgrna1.csv --model DL_model
@@ -76,6 +79,8 @@ We can train DeepCas13 model by set parameter `--train`. The training data is a 
 |`--model`|Specify the path to the pretrained model|
 
 #### Demo 3. Design sgRNAs for target sequence ####
+
+To design sgRNA for a specific target sequence, DeepCas13 can identify all possible sgRNAs and predict the efficiency:
 
 ```
 	python deepcas13.py --seq data/test_data_target.fa --model DL_model --type target
