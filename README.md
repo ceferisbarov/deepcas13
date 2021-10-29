@@ -52,6 +52,8 @@ Here, we provie 3 demos to show how to use DeepCas13, including train model, pre
 
 #### Demo 1. Train DeepCas13 model ####
 
+We can train DeepCas13 model by set parameter `--train`. The training data is a two-column file, in which the first col is sgRNA sequence and the second col the the LFC.
+
 ```
 	python deepcas13.py --train --savepath DL_model --data data/training_data.csv
 ```
