@@ -38,14 +38,6 @@ We also provide a [webserver](http://deepcas13.weililab.org/) for user to design
 	
 ```
 
-4. Check the usage
-
-```
-    python deepcas13.py -h
-	
-	
-```
-
 ### Run the demo ###
 
 Here, we provie 3 demos to show how to use DeepCas13, including train model, predict sgRNA efficiency and design sgRNAs for target sequence.
