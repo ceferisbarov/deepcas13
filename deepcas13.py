@@ -251,7 +251,7 @@ def train_deepcas13_model(df_train, savepath, basename):
         NN_model.compile(optimizer='Adam', loss='mse')
         ###
         NN_model.fit([X_train_seq_CNN, X_train_fold_CNN],  y_train, epochs=30, batch_size=128, shuffle=True, verbose=0)
-        logger.info('save trained model to path: ' + savepath)
+        logger.info('save trained model to path: ' + savepath + ' (Part ' + str(N+1) + ')')
         NN_model.save(os.path.join(savepath, basename+str(N)))
         N = N + 1
 
