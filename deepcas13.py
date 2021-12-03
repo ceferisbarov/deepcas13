@@ -105,7 +105,7 @@ def read_seq(file_path):
             lines = f.read().splitlines()
         df_seq = pd.DataFrame(columns = ['sgrna', 'seq'])
         df_seq['sgrna'] = [i[1:] for i in lines if i.startswith('>')]
-        df_seq['seq'] = [i[1:] for i in lines if not i.startswith('>')]
+        df_seq['seq'] = [i for i in lines if not i.startswith('>')]
     logger.info('find ' + str(len(df_seq)) + ' sgRNAs')
     return df_seq
 
@@ -132,7 +132,7 @@ def read_target(file_path, length):
             lines = f.read().splitlines()
         df_seq = pd.DataFrame(columns = ['sgrna', 'seq'])
         df_seq['sgrna'] = [i[1:] for i in lines if i.startswith('>')]
-        df_seq['seq'] = [i[1:] for i in lines if not i.startswith('>')]
+        df_seq['seq'] = [i for i in lines if not i.startswith('>')]
     ##
     seq_target = df_seq['seq'].to_list()[0]
     logger.info('target sequence contains: ' + str(len(seq_target)) + ' nt')
