@@ -29,11 +29,11 @@ We also provide a [webserver](http://deepcas13.weililab.org/) for user to design
 ```
     conda install pandas numpy=1.19.1 seaborn scikit-learn 
 	
-	conda install -c conda-forge jupyterlab # or pip install jupyterlab
+	conda install -c bioconda viennarna
 	
-    conda install -c bioconda viennarna
+	pip install jupyterlab
 	
-	conda install -c conda-forge tensorflow=2.4 # or pip install tensorflow==2.4
+	pip install tensorflow==2.4
 	
 	
 ```
