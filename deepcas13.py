@@ -53,6 +53,17 @@ group_train.add_argument("--savepath", type=str, help="Specify the path to save 
 parser.add_argument("--basename", type=str, default="DeepCas13_Model", help="The basename of model files. Default basename is DeepCas13_Model")
 
 ##
+dct_ohc_seq = {'A': [1, 0, 0, 0],
+               'C': [0, 1, 0, 0],
+               'G': [0, 0, 1, 0],
+               'T': [0, 0, 0, 1],
+               'N': [0, 0, 0, 0]}
+
+dct_ohc_fold = {'(': [1, 0, 0],
+                ')': [0, 1, 0],
+                '.': [0, 0, 1],
+                'N': [0, 0, 0]}
+
 def get_fold(seq):
     for i in range(33-len(seq)):
         seq = seq + 'N'
@@ -65,22 +76,12 @@ def seq_one_hot_code(seq):
     seq = seq.upper()
     lst_seq = list(seq)
     lst_seq.extend(['N' for i in range(33-len(seq))])
-    df_onehot = pd.DataFrame(list(lst_seq), columns=['NT'])
-    for col_feat in ['A','C','G','T','N']:
-        df_onehot[col_feat]=df_onehot['NT'].apply(lambda x:1 if x==col_feat else 0)
-    df_onehot = df_onehot.set_index('NT')
-    df_onehot = df_onehot.drop(columns=['N'])
-    return df_onehot.values
+    return [dct_ohc_seq[i] for i in lst_seq]
 
 def fold_one_hot_code(seq):
     lst_seq = list(seq)
     lst_seq.extend(['N' for i in range(33-len(seq))])
-    df_onehot = pd.DataFrame(list(lst_seq), columns=['NT'])
-    for col_feat in ['(',')','.','N']:
-        df_onehot[col_feat]=df_onehot['NT'].apply(lambda x:1 if x==col_feat else 0)
-    df_onehot = df_onehot.set_index('NT')
-    df_onehot = df_onehot.drop(columns=['N'])
-    return df_onehot.values
+    return [dct_ohc_fold[i] for i in lst_seq]
 
 def read_seq(file_path):
     logger.info('read sgRNA sequence file: ' + file_path)
