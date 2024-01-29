@@ -207,6 +207,9 @@ def train_deepcas13_model(df_train, savepath, basename):
     from sklearn.model_selection import KFold
     kf = KFold(n_splits=5, shuffle=True, random_state=32)
     N = 0
+    train_results = []
+    test_results = []
+    
     for train, test in kf.split(df_train):
         X_train = df_train.iloc[list(train),:]
         y_train = df_train.iloc[list(train),2]
@@ -219,6 +222,17 @@ def train_deepcas13_model(df_train, savepath, basename):
         X_train_seq_CNN = np.reshape(X_train_arr_seq, (len(X_train_arr_seq), 1, 33, 4, 1)) 
         X_train_fold_CNN = np.reshape(X_train_arr_fold, (len(X_train_arr_fold), 1, 33, 3, 1))
         ## Seq
+        X_test = df_train.iloc[list(test),:]
+        y_test = df_train.iloc[list(test),2]
+        X_test_seq = [seq_one_hot_code(i) for i in X_test.seq.to_list()]
+        X_test_fold = [fold_one_hot_code(get_fold(i)) for i in X_test.seq.to_list()]
+        ###
+        X_test_arr_seq = np.array(X_test_seq)
+        X_test_arr_fold = np.array(X_test_fold)
+        ###
+        X_test_seq_CNN = np.reshape(X_test_arr_seq, (len(X_test_arr_seq), 1, 33, 4, 1)) 
+        X_test_fold_CNN = np.reshape(X_test_arr_fold, (len(X_test_arr_fold), 1, 33, 3, 1))
+        ##
         seq_input = Input(shape=(1, 33, 4, 1))
         seq_conv1 = TimeDistributed(Conv2D(8, (3, 3), padding='same', activation='relu'))(seq_input)
         seq_norm1 = TimeDistributed(BatchNormalization())(seq_conv1)
@@ -250,12 +264,29 @@ def train_deepcas13_model(df_train, savepath, basename):
         ###
         NN_model = Model([seq_input, fold_input], NN_output)
         NN_model.compile(optimizer='Adam', loss='mse')
+        # print(NN_model.summary())
         ###
-        NN_model.fit([X_train_seq_CNN, X_train_fold_CNN],  y_train, epochs=30, batch_size=128, shuffle=True, verbose=0)
+        NN_model.fit([X_train_seq_CNN, X_train_fold_CNN], 
+                     y_train,
+                     validation_data = ([X_test_seq_CNN, X_test_fold_CNN], y_test),
+                     epochs=23,
+                     batch_size=128,
+                     shuffle=True,
+                     verbose=1)
+        train_results.append(NN_model.evaluate([X_train_seq_CNN, X_train_fold_CNN], y_train))
+        test_results.append(NN_model.evaluate([X_test_seq_CNN, X_test_fold_CNN], y_test))
         logger.info('save trained model to path: ' + savepath + ' (Part ' + str(N+1) + ')')
         NN_model.save(os.path.join(savepath, basename+str(N)))
         N = N + 1
 
+    with open("results_original.txt", "a") as f:
+        f.writelines([
+            ", ".join(map(str, train_results)) + "\n",
+            ", ".join(map(str, test_results)) + "\n",
+            str(sum(train_results) / len(train_results)) + "\n",
+            str(sum(test_results) / len(test_results)) + "\n",
+        ])
+    
 if __name__ == "__main__":
     # create logger
     logger = logging.getLogger('DeepCas13')
@@ -295,4 +326,3 @@ if __name__ == "__main__":
             elif args.output.endswith('.txt') or args.output.endswith('.tsv'):
                 df_score.to_csv(args.output, header=True, index=False, sep='\t')
     logger.info('Done !')
-
