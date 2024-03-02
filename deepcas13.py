@@ -264,7 +264,8 @@ def train_deepcas13_model(df_train, savepath, basename):
         ###
         NN_model = Model([seq_input, fold_input], NN_output)
         NN_model.compile(optimizer='Adam', loss='mse')
-        # print(NN_model.summary())
+        # keras.utils.plot_model(NN_model, to_file="original_model.png")
+        print(NN_model.summary())
         ###
         NN_model.fit([X_train_seq_CNN, X_train_fold_CNN], 
                      y_train,

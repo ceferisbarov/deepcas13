@@ -65,7 +65,7 @@ dct_ohc_fold = {'(': [1, 0, 0],
                 'N': [0, 0, 0]}
 
 def get_fold(seq):
-    for i in range(30-len(seq)):
+    for i in range(33-len(seq)):
         seq = seq + 'N'
     fc = RNA.fold_compound(seq)
     # compute MFE and MFE structure
@@ -75,12 +75,12 @@ def get_fold(seq):
 def seq_one_hot_code(seq):
     seq = seq.upper()
     lst_seq = list(seq)
-    lst_seq.extend(['N' for i in range(30-len(seq))])
+    lst_seq.extend(['N' for i in range(33-len(seq))])
     return [dct_ohc_seq[i] for i in lst_seq]
 
 def fold_one_hot_code(seq):
     lst_seq = list(seq)
-    lst_seq.extend(['N' for i in range(30-len(seq))])
+    lst_seq.extend(['N' for i in range(33-len(seq))])
     return [dct_ohc_fold[i] for i in lst_seq]
 
 def read_seq(file_path):
@@ -172,8 +172,8 @@ def get_DeepScore(df_seq, model, basename):
     X_test_fold = [fold_one_hot_code(fold) for fold in lst_fold]
     X_test_arr_seq = np.array(X_test_seq)
     X_test_arr_fold = np.array(X_test_fold)
-    X_test_seq_CNN = np.reshape(X_test_arr_seq, (len(X_test_arr_seq), 1, 30, 4, 1)) 
-    X_test_fold_CNN = np.reshape(X_test_arr_fold, (len(X_test_arr_fold), 1, 30, 3, 1))
+    X_test_seq_CNN = np.reshape(X_test_arr_seq, (len(X_test_arr_seq), 1, 33, 4, 1)) 
+    X_test_fold_CNN = np.reshape(X_test_arr_fold, (len(X_test_arr_fold), 1, 33, 3, 1))
     df_score = pd.DataFrame(columns=['y_pred', 'M0', 'M1', 'M2', 'M3', 'M4'])
     for k in range(5):
         y_pred = lst_model[k].predict([X_test_seq_CNN, X_test_fold_CNN])
@@ -219,8 +219,8 @@ def train_deepcas13_model(df_train, savepath, basename):
         X_train_arr_seq = np.array(X_train_seq)
         X_train_arr_fold = np.array(X_train_fold)
         ###
-        X_train_seq_CNN = np.reshape(X_train_arr_seq, (len(X_train_arr_seq), 1, 30, 4, 1)) 
-        X_train_fold_CNN = np.reshape(X_train_arr_fold, (len(X_train_arr_fold), 1, 30, 3, 1))
+        X_train_seq_CNN = np.reshape(X_train_arr_seq, (len(X_train_arr_seq), 1, 33, 4, 1)) 
+        X_train_fold_CNN = np.reshape(X_train_arr_fold, (len(X_train_arr_fold), 1, 33, 3, 1))
         ## Seq
         X_test = df_train.iloc[list(test),:]
         y_test = df_train.iloc[list(test),2]
@@ -230,10 +230,10 @@ def train_deepcas13_model(df_train, savepath, basename):
         X_test_arr_seq = np.array(X_test_seq)
         X_test_arr_fold = np.array(X_test_fold)
         ###
-        X_test_seq_CNN = np.reshape(X_test_arr_seq, (len(X_test_arr_seq), 1, 30, 4, 1)) 
-        X_test_fold_CNN = np.reshape(X_test_arr_fold, (len(X_test_arr_fold), 1, 30, 3, 1))
+        X_test_seq_CNN = np.reshape(X_test_arr_seq, (len(X_test_arr_seq), 1, 33, 4, 1)) 
+        X_test_fold_CNN = np.reshape(X_test_arr_fold, (len(X_test_arr_fold), 1, 33, 3, 1))
         ##
-        seq_input = Input(shape=(1, 30, 4, 1))
+        seq_input = Input(shape=(1, 33, 4, 1))
         seq_conv1 = TimeDistributed(Conv2D(16, (3, 3), padding='same', activation='relu'))(seq_input)
         seq_norm1 = TimeDistributed(BatchNormalization())(seq_conv1)
         seq_conv2 = TimeDistributed(Conv2D(32, (3, 3), padding='same', activation='relu'))(seq_norm1)
@@ -245,7 +245,7 @@ def train_deepcas13_model(df_train, savepath, basename):
         seq_drop2 = Dropout(0.3)(seq_lstm1)
         seq_output = Dense(128, activation='relu')(seq_drop2)
         # ## Fold
-        # fold_input = Input(shape=(1, 30, 3, 1))
+        # fold_input = Input(shape=(1, 33, 3, 1))
         # fold_conv1 = TimeDistributed(Conv2D(8, (3, 3), padding='same', activation='relu'))(fold_input)
         # fold_norm1 = TimeDistributed(BatchNormalization())(fold_conv1)
         # fold_conv2 = TimeDistributed(Conv2D(16, (3, 3), padding='same', activation='relu'))(fold_norm1)
@@ -263,7 +263,9 @@ def train_deepcas13_model(df_train, savepath, basename):
         NN_output = Dense(1, activation='sigmoid')(NN_dense2)
         ###
         NN_model = Model(seq_input, NN_output)
-        NN_model.compile(optimizer='Adam', loss='mse')
+        NN_model.compile(optimizer='Adam',
+                         loss=tf.keras.losses.BinaryCrossentropy(),
+                         metrics=[tf.keras.metrics.AUC()])
         # keras.utils.plot_model(NN_model, to_file="test_model.png")
 
         print(NN_model.summary())

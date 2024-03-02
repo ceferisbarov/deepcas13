@@ -49,7 +49,11 @@ Thumbs.db
 *.wmv
 
 # Models
-DL_model/
+DL_model*
 
 papers
 results*
+data/*
+pictures/*
+papers/*
+classification*
